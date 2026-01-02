@@ -1,10 +1,9 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
-import axios from "axios";
+import { axiosInstance } from "../axios.js";
 
 const Usercontext = createContext();
-const server = import.meta.env.VITE_SERVER;
-
+// const server = import.meta.env.VITE_SERVER==='development'?'http://localhost:5001':""
 export const UserProvider = ({ children }) => {
   const [btnLoading, setBtnLoading] = useState(false);
   const [user, setUser] = useState([]); // always an array
@@ -15,7 +14,9 @@ export const UserProvider = ({ children }) => {
   async function loginUser(email, navigate) {
     setBtnLoading(true);
     try {
-      const { data } = await axios.post(`${server}/User/login`, { email });
+      const { data } = await axiosInstance.post(`/User/login`, { email });
+      console.log("API BASE URL:", import.meta.env.VITE_SERVER);
+
 
       toast.success(data.message);
       localStorage.setItem("verifyToken", data.verifyToken);
@@ -34,7 +35,7 @@ export const UserProvider = ({ children }) => {
 
     setBtnLoading(true);
     try {
-      const { data } = await axios.post(`${server}/User/verify`, {
+      const { data } = await axiosInstance.post(`/User/verify`, {
         otp,
         verifyToken,
       });
@@ -64,7 +65,7 @@ export const UserProvider = ({ children }) => {
   }
 
   try {
-    const { data } = await axios.get(`${server}/User/me`, {
+    const { data } = await axiosInstance.get(`/User/me`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 

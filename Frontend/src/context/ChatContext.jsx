@@ -1,10 +1,9 @@
 import axios from "axios";
 import { createContext, useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { axiosInstance } from "../axios.js";
 
 const Chatcontext = createContext();
-
-
 
 export const ChatProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
@@ -15,9 +14,10 @@ export const ChatProvider = ({ children }) => {
   const [createLod, setCreateLod] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // const GEMINI_KEY ="AIzaSyAte9gVBd4IftB-KTIY_nWco_OsH3uXv40";
   const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-  const server = import.meta.env.VITE_SERVER;
+  //  const server = import.meta.env.VITE_SERVER==='development'?'http://localhost:5001':""
+  // const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
+ 
   
   const token = localStorage.getItem("token");
 
@@ -62,8 +62,8 @@ export const ChatProvider = ({ children }) => {
       setMessages((prev) => [...prev, { question: userPrompt, answer }]);
 
       // Save to backend
-      await axios.post(
-        `${server}/chat/add/${selected}`,
+      await axiosInstance.post(
+        `/chat/add/${selected}`,
         { question: userPrompt, answer },
         { headers: authHeader }
       );
@@ -83,7 +83,7 @@ export const ChatProvider = ({ children }) => {
   // ✅ Fetch all user chats
   async function fetchChats() {
     try {
-      const { data } = await axios.get(`${server}/chat/all`, { headers: authHeader });
+      const { data } = await axiosInstance.get(`/chat/all`, { headers: authHeader });
 
       const chatList = Array.isArray(data)
         ? data
@@ -108,7 +108,7 @@ export const ChatProvider = ({ children }) => {
 
     setLoading(true);
     try {
-      const { data } = await axios.get(`${server}/chat/${selected}`, { headers: authHeader });
+      const { data } = await axiosInstance.get(`/chat/${selected}`, { headers: authHeader });
 
       const msgList = Array.isArray(data)
         ? data
@@ -129,7 +129,7 @@ export const ChatProvider = ({ children }) => {
   async function createChat() {
     setCreateLod(true);
     try {
-      await axios.post(`${server}/chat/new`, {}, { headers: authHeader });
+      await axiosInstance.post(`/chat/new`, {}, { headers: authHeader });
       toast.success("New chat created!");
       await fetchChats();
     } catch (error) {
@@ -144,7 +144,7 @@ export const ChatProvider = ({ children }) => {
   async function deleteChat(id) {
     if (!id) return;
     try {
-      const { data } = await axios.delete(`${server}/chat/${id}`, { headers: authHeader });
+      const { data } = await axiosInstance.delete(`/chat/${id}`, { headers: authHeader });
       toast.success(data.message || "Chat deleted");
       await fetchChats();
       if (selected === id) setSelected(null);
